@@ -7,8 +7,11 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'vits-web',
-      formats: ['es']
+      formats: ['es'],
+      fileName: () => 'vits-web.js'
     },
+    outDir: 'dist',
+    emptyOutDir: true,
     rollupOptions: {
       external: [
         '**/*.spec.ts',
