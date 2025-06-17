@@ -1,8 +1,8 @@
 {
-  "name": "@diffusionstudio/vits-web",
+  "name": "@diffusionstudio/vits-web-cm",
   "private": false,
   "version": "1.0.3",
-  "description": "Web api for using VITS based models in the browser!",
+  "description": "Web api for using VITS based models in the browser! extend custom models",
   "type": "module",
   "files": [
     "dist",
