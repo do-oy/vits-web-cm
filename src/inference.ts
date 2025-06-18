@@ -1,5 +1,5 @@
 import { InferenceConfg, ProgressCallback } from './types';
-import { HF_BASE, ONNX_BASE, PATH_MAP, WASM_BASE } from './fixtures';
+import { ONNX_BASE, WASM_BASE } from './fixtures';
 import { readBlob, writeBlob } from './opfs';
 import { fetchBlob } from './http.js';
 import { pcm2wav } from './audio';
@@ -7,22 +7,18 @@ import { pcm2wav } from './audio';
 let module: typeof import('./piper.js');
 let ort: typeof import('onnxruntime-web');
 
-/**
- * Run text to speech inference in new worker thread. Fetches the model
- * first, if it has not yet been saved to opfs yet.
- */
 export async function predict(config: InferenceConfg, callback?: ProgressCallback): Promise<Blob> {
 	module = module ?? (await import('./piper.js'));
 	ort = ort ?? (await import('onnxruntime-web'));
 
-	const path = PATH_MAP[config.voiceId];
+	const basePath = `/models/${config.voiceId}`;
 	const input = JSON.stringify([{ text: config.text.trim() }]);
 
-	ort.env.allowLocalModels = false;
+	ort.env.allowLocalModels = true;
 	ort.env.wasm.numThreads = navigator.hardwareConcurrency;
 	ort.env.wasm.wasmPaths = ONNX_BASE;
 
-	const modelConfigBlob = await getBlob(`${HF_BASE}/${path}.json`);
+	const modelConfigBlob = await getBlob(`${basePath}.onnx.json`, callback);
 	const modelConfig = JSON.parse(await modelConfigBlob.text());
 
 	const phonemeIds: string[] = await new Promise(async (resolve) => {
@@ -56,13 +52,15 @@ export async function predict(config: InferenceConfg, callback?: ProgressCallbac
 	const lengthScale = modelConfig.inference.length_scale;
 	const noiseW = modelConfig.inference.noise_w;
 
-	const modelBlob = await getBlob(`${HF_BASE}/${path}`, callback);
+	const modelBlob = await getBlob(`${basePath}.onnx`, callback);
 	const session = await ort.InferenceSession.create(await modelBlob.arrayBuffer());
+
 	const feeds = {
 		input: new ort.Tensor('int64', phonemeIds, [1, phonemeIds.length]),
 		input_lengths: new ort.Tensor('int64', [phonemeIds.length]),
 		scales: new ort.Tensor('float32', [noiseScale, lengthScale, noiseW]),
 	};
+
 	if (Object.keys(modelConfig.speaker_id_map).length) {
 		Object.assign(feeds, { sid: new ort.Tensor('int64', [speakerId]) });
 	}
@@ -74,17 +72,11 @@ export async function predict(config: InferenceConfg, callback?: ProgressCallbac
 	return new Blob([pcm2wav(pcm as Float32Array, 1, sampleRate)], { type: 'audio/x-wav' });
 }
 
-/**
- * Tries to get blob from opfs, if it's not stored
- * yet the method will fetch the blob.
- */
-async function getBlob(url: string, callback?: ProgressCallback) {
+async function getBlob(url: string, callback?: ProgressCallback): Promise<Blob> {
 	let blob: Blob | undefined = await readBlob(url);
-
 	if (!blob) {
 		blob = await fetchBlob(url, callback);
 		await writeBlob(url, blob);
 	}
-
 	return blob;
 }

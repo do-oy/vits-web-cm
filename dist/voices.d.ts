@@ -1,7 +1,5 @@
-import { Voice } from './types';
-
 /**
- * Retrieves all available voices from huggingface
- * @returns
+ * Returns available voice IDs by scanning /models/ directory.
+ * This does not include HuggingFace metadata.
  */
-export declare function voices(): Promise<Voice[]>;
+export declare function voices(): Promise<string[]>;

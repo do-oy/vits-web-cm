@@ -1,16 +1,11 @@
-import { HF_BASE } from './fixtures';
-import { Voice } from './types';
-
 /**
- * Retrieves all available voices from huggingface
- * @returns
+ * Returns available voice IDs by scanning /models/ directory.
+ * This does not include HuggingFace metadata.
  */
-export async function voices(): Promise<Voice[]> {
-	const res = await fetch(`${HF_BASE}/voices.json`);
-
-	if (!res.ok) {
-		throw new Error('Could not retrieve voices file from huggingface');
-	}
-
-	return Object.values(await res.json());
+export async function voices(): Promise<string[]> {
+	const res = await fetch('/models/');
+	const text = await res.text();
+	const files = [...text.matchAll(/href="([^"]+\.onnx\.json)"/g)].map((m) => m[1]);
+	const ids = [...new Set(files.map((f) => f.replace(/\.onnx\.json$/, '')))];
+	return ids;
 }

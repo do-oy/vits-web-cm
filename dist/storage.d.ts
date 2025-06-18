@@ -1,18 +1,18 @@
-import { ProgressCallback, VoiceId } from './types';
+import { ProgressCallback } from './types';
 
 /**
- * Prefetch a model for later use
+ * prefetch model in OPFS (local from /models/{voiceId}.onnx nd .onnx.json)
  */
-export declare function download(voiceId: VoiceId, callback?: ProgressCallback): Promise<void>;
+export declare function download(voiceId: string, callback?: ProgressCallback): Promise<void>;
 /**
- * Remove a model from opfs
+ * Remove model from OPFS
  */
-export declare function remove(voiceId: VoiceId): Promise<void>;
+export declare function remove(voiceId: string): Promise<void>;
 /**
- * Get all stored models
+ * getting all models saved at OPFS
  */
-export declare function stored(): Promise<VoiceId[]>;
+export declare function stored(): Promise<string[]>;
 /**
- * Delete the models directory
+ * Full wipe OPFS
  */
 export declare function flush(): Promise<void>;

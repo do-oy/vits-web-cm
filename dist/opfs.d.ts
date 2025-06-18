@@ -1,3 +1,5 @@
-export declare function writeBlob(url: string, blob: Blob): Promise<void>;
-export declare function removeBlob(url: string): Promise<void>;
-export declare function readBlob(url: string): Promise<Blob | undefined>;
+export declare function writeBlob(path: string, blob: Blob): Promise<void>;
+export declare function readBlob(path: string): Promise<Blob | undefined>;
+export declare function removeBlob(path: string): Promise<void>;
+export declare function listBlobs(): Promise<string[]>;
+export declare function clearBlobs(): Promise<void>;

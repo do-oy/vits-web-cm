@@ -1,62 +1,55 @@
-import { PATH_MAP, HF_BASE } from './fixtures';
 import { fetchBlob } from './http';
-import { removeBlob, writeBlob } from './opfs';
-import { ProgressCallback, VoiceId } from './types';
+import { removeBlob, writeBlob, listBlobs } from './opfs';
+import { ProgressCallback } from './types';
 
 /**
- * Prefetch a model for later use
+ * prefetch model in OPFS (local from /models/{voiceId}.onnx nd .onnx.json)
  */
-export async function download(voiceId: VoiceId, callback?: ProgressCallback): Promise<void> {
-	const path = PATH_MAP[voiceId];
-	const urls = [`${HF_BASE}/${path}`, `${HF_BASE}/${path}.json`];
+export async function download(voiceId: string, callback?: ProgressCallback): Promise<void> {
+	const urls = [`/models/${voiceId}.onnx`, `/models/${voiceId}.onnx.json`];
 
 	await Promise.all(
 		urls.map(async (url) => {
-			writeBlob(url, await fetchBlob(url, url.endsWith('.onnx') ? callback : undefined));
+			const blob = await fetchBlob(url, url.endsWith('.onnx') ? callback : undefined);
+			await writeBlob(url, blob);
 		}),
 	);
 }
 
 /**
- * Remove a model from opfs
+ * Remove model from OPFS
  */
-export async function remove(voiceId: VoiceId) {
-	const path = PATH_MAP[voiceId];
-	const urls = [`${HF_BASE}/${path}`, `${HF_BASE}/${path}.json`];
-
-	await Promise.all(urls.map((url) => removeBlob(url)));
+export async function remove(voiceId: string) {
+	const urls = [`/models/${voiceId}.onnx`, `/models/${voiceId}.onnx.json`];
+	await Promise.all(urls.map(removeBlob));
 }
 
 /**
- * Get all stored models
+ * getting all models saved at OPFS
  */
-export async function stored(): Promise<VoiceId[]> {
-	const root = await navigator.storage.getDirectory();
-	const dir = await root.getDirectoryHandle('piper', {
-		create: true,
-	});
-	const result: VoiceId[] = [];
+export async function stored(): Promise<string[]> {
+	const files = await listBlobs();
+	const models = new Set<string>();
 
-	// @ts-ignore
-	for await (const name of dir.keys()) {
-		const key = name.split('.')[0];
-		if (name.endsWith('.onnx') && key in PATH_MAP) {
-			result.push(key as VoiceId);
+	for (const file of files) {
+		if (file.endsWith('.onnx') || file.endsWith('.onnx.json')) {
+			models.add(file.replace('.onnx', '').replace('.json', ''));
 		}
 	}
 
-	return result;
+	return [...models];
 }
 
 /**
- * Delete the models directory
+ * Full wipe OPFS
  */
 export async function flush() {
 	try {
 		const root = await navigator.storage.getDirectory();
-		const dir = await root.getDirectoryHandle('piper'); // @ts-ignore
+		const dir = await root.getDirectoryHandle('piper');
+		// @ts-ignore
 		await dir.remove({ recursive: true });
 	} catch (e) {
-		console.error(e);
+		console.error('[OPFS] Flush error:', e);
 	}
 }
