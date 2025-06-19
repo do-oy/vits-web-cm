@@ -18,7 +18,7 @@ export async function predict(config: InferenceConfg, callback?: ProgressCallbac
 	const modelId = config.voiceId;
 	const input = JSON.stringify([{ text: config.text.trim() }]);
 
-	ort.env.allowLocalModels = false;
+	ort.env.allowLocalModels = true;
 	ort.env.wasm.numThreads = navigator.hardwareConcurrency;
 	ort.env.wasm.wasmPaths = ONNX_BASE;
 

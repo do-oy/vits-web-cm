@@ -1,14 +1,13 @@
 const U = "https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.18.0/", f = "https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize";
 async function h(t, o) {
-  if (t.match("https://huggingface.co"))
-    try {
-      const a = await (await navigator.storage.getDirectory()).getDirectoryHandle("piper", {
-        create: !0
-      }), i = t.split("/").at(-1), r = await (await a.getFileHandle(i, { create: !0 })).createWritable();
-      await r.write(o), await r.close();
-    } catch (e) {
-      console.error(e);
-    }
+  try {
+    const a = await (await navigator.storage.getDirectory()).getDirectoryHandle("piper", {
+      create: !0
+    }), i = t.split("/").at(-1), r = await (await a.getFileHandle(i, { create: !0 })).createWritable();
+    await r.write(o), await r.close();
+  } catch (e) {
+    console.error(e);
+  }
 }
 async function _(t) {
   try {
@@ -19,17 +18,16 @@ async function _(t) {
   }
 }
 async function D(t) {
-  if (t.match("https://huggingface.co"))
-    try {
-      const e = await (await navigator.storage.getDirectory()).getDirectoryHandle("piper", {
-        create: !0
-      }), a = t.split("/").at(-1);
-      return await (await e.getFileHandle(a)).getFile();
-    } catch {
-      return;
-    }
+  try {
+    const e = await (await navigator.storage.getDirectory()).getDirectoryHandle("piper", {
+      create: !0
+    }), a = t.split("/").at(-1);
+    return await (await e.getFileHandle(a)).getFile();
+  } catch {
+    return;
+  }
 }
-async function m(t, o) {
+async function y(t, o) {
   var c;
   const e = await fetch(t), a = (c = e.body) == null ? void 0 : c.getReader(), i = +(e.headers.get("Content-Length") ?? 0);
   let n = 0, r = [];
@@ -59,7 +57,7 @@ let d, s;
 async function H(t, o) {
   d = d ?? await import("./piper-DeOu3H9E.js"), s = s ?? await import("onnxruntime-web");
   const e = t.voiceId, a = JSON.stringify([{ text: t.text.trim() }]);
-  s.env.allowLocalModels = !1, s.env.wasm.numThreads = navigator.hardwareConcurrency, s.env.wasm.wasmPaths = U;
+  s.env.allowLocalModels = !0, s.env.wasm.numThreads = navigator.hardwareConcurrency, s.env.wasm.wasmPaths = U;
   const i = await g(`/models/${e}/${e}.onnx.json`), n = JSON.parse(await i.text()), r = await new Promise(async (B) => {
     (await d.createPiperPhonemize({
       print: (w) => {
@@ -77,10 +75,10 @@ async function H(t, o) {
       "--espeak_data",
       "/espeak-ng-data"
     ]);
-  }), c = 0, l = n.audio.sample_rate, u = n.inference.noise_scale, y = n.inference.length_scale, v = n.inference.noise_w, b = await g(`/models/${e}/${e}.onnx`, o), x = await s.InferenceSession.create(await b.arrayBuffer()), p = {
+  }), c = 0, l = n.audio.sample_rate, u = n.inference.noise_scale, m = n.inference.length_scale, v = n.inference.noise_w, b = await g(`/models/${e}/${e}.onnx`, o), x = await s.InferenceSession.create(await b.arrayBuffer()), p = {
     input: new s.Tensor("int64", r, [1, r.length]),
     input_lengths: new s.Tensor("int64", [r.length]),
-    scales: new s.Tensor("float32", [u, y, v])
+    scales: new s.Tensor("float32", [u, m, v])
   };
   Object.keys(n.speaker_id_map).length && Object.assign(p, { sid: new s.Tensor("int64", [c]) });
   const {
@@ -90,7 +88,7 @@ async function H(t, o) {
 }
 async function g(t, o) {
   let e = await D(t);
-  return e || (e = await m(t, o), await h(t, e)), e;
+  return e || (e = await y(t, o), await h(t, e)), e;
 }
 async function k(t, o) {
   const e = [
@@ -99,7 +97,7 @@ async function k(t, o) {
   ];
   await Promise.all(
     e.map(async (a) => {
-      h(a, await m(a, a.endsWith(".onnx") ? o : void 0));
+      h(a, await y(a, a.endsWith(".onnx") ? o : void 0));
     })
   );
 }

@@ -1,6 +1,4 @@
 export async function writeBlob(url: string, blob: Blob): Promise<void> {
-	// only store models
-	if (!url.match('https://huggingface.co')) return;
 	try {
 		const root = await navigator.storage.getDirectory();
 		const dir = await root.getDirectoryHandle('piper', {
@@ -30,7 +28,6 @@ export async function removeBlob(url: string) {
 }
 
 export async function readBlob(url: string): Promise<Blob | undefined> {
-	if (!url.match('https://huggingface.co')) return;
 	try {
 		const root = await navigator.storage.getDirectory();
 		const dir = await root.getDirectoryHandle('piper', {
