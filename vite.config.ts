@@ -7,6 +7,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'vits-web',
+      fileName: 'vits-web',
       formats: ['es']
     },
     rollupOptions: {
