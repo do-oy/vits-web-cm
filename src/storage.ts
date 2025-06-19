@@ -1,28 +1,31 @@
-import { PATH_MAP, HF_BASE } from './fixtures';
 import { fetchBlob } from './http';
 import { removeBlob, writeBlob } from './opfs';
-import { ProgressCallback, VoiceId } from './types';
+import { ProgressCallback } from './types';
 
 /**
  * Prefetch a model for later use
  */
-export async function download(voiceId: VoiceId, callback?: ProgressCallback): Promise<void> {
-	const path = PATH_MAP[voiceId];
-	const urls = [`${HF_BASE}/${path}`, `${HF_BASE}/${path}.json`];
+export async function download(modelId: string, callback?: ProgressCallback): Promise<void> {
+	const urls = [
+		`/models/${modelId}/${modelId}.onnx`,
+		`/models/${modelId}/${modelId}.onnx.json`
+	];
 
 	await Promise.all(
 		urls.map(async (url) => {
 			writeBlob(url, await fetchBlob(url, url.endsWith('.onnx') ? callback : undefined));
-		}),
+		})
 	);
 }
 
 /**
  * Remove a model from opfs
  */
-export async function remove(voiceId: VoiceId) {
-	const path = PATH_MAP[voiceId];
-	const urls = [`${HF_BASE}/${path}`, `${HF_BASE}/${path}.json`];
+export async function remove(modelId: string) {
+	const urls = [
+		`/models/${modelId}/${modelId}.onnx`,
+		`/models/${modelId}/${modelId}.onnx.json`
+	];
 
 	await Promise.all(urls.map((url) => removeBlob(url)));
 }
@@ -30,18 +33,18 @@ export async function remove(voiceId: VoiceId) {
 /**
  * Get all stored models
  */
-export async function stored(): Promise<VoiceId[]> {
+export async function stored(): Promise<string[]> {
 	const root = await navigator.storage.getDirectory();
 	const dir = await root.getDirectoryHandle('piper', {
 		create: true,
 	});
-	const result: VoiceId[] = [];
+	const result: string[] = [];
 
 	// @ts-ignore
 	for await (const name of dir.keys()) {
-		const key = name.split('.')[0];
-		if (name.endsWith('.onnx') && key in PATH_MAP) {
-			result.push(key as VoiceId);
+		if (name.endsWith('.onnx')) {
+			const key = name.split('.')[0];
+			result.push(key);
 		}
 	}
 

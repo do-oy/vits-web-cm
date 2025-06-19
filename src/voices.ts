@@ -1,16 +1,12 @@
-import { HF_BASE } from './fixtures';
 import { Voice } from './types';
 
 /**
- * Retrieves all available voices from huggingface
- * @returns
+ * Получить все доступные кастомные модели из /models/models.json
  */
 export async function voices(): Promise<Voice[]> {
-	const res = await fetch(`${HF_BASE}/voices.json`);
-
+	const res = await fetch('/models/models.json');
 	if (!res.ok) {
-		throw new Error('Could not retrieve voices file from huggingface');
+		throw new Error('Не удалось получить список моделей');
 	}
-
-	return Object.values(await res.json());
+	return await res.json();
 }

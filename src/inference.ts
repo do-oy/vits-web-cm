@@ -1,5 +1,5 @@
 import { InferenceConfg, ProgressCallback } from './types';
-import { HF_BASE, ONNX_BASE, PATH_MAP, WASM_BASE } from './fixtures';
+import { ONNX_BASE, WASM_BASE } from './fixtures';
 import { readBlob, writeBlob } from './opfs';
 import { fetchBlob } from './http.js';
 import { pcm2wav } from './audio';
@@ -15,14 +15,14 @@ export async function predict(config: InferenceConfg, callback?: ProgressCallbac
 	module = module ?? (await import('./piper.js'));
 	ort = ort ?? (await import('onnxruntime-web'));
 
-	const path = PATH_MAP[config.voiceId];
+	const modelId = config.voiceId;
 	const input = JSON.stringify([{ text: config.text.trim() }]);
 
 	ort.env.allowLocalModels = false;
 	ort.env.wasm.numThreads = navigator.hardwareConcurrency;
 	ort.env.wasm.wasmPaths = ONNX_BASE;
 
-	const modelConfigBlob = await getBlob(`${HF_BASE}/${path}.json`);
+	const modelConfigBlob = await getBlob(`/models/${modelId}/${modelId}.onnx.json`);
 	const modelConfig = JSON.parse(await modelConfigBlob.text());
 
 	const phonemeIds: string[] = await new Promise(async (resolve) => {
@@ -56,7 +56,7 @@ export async function predict(config: InferenceConfg, callback?: ProgressCallbac
 	const lengthScale = modelConfig.inference.length_scale;
 	const noiseW = modelConfig.inference.noise_w;
 
-	const modelBlob = await getBlob(`${HF_BASE}/${path}`, callback);
+	const modelBlob = await getBlob(`/models/${modelId}/${modelId}.onnx`, callback);
 	const session = await ort.InferenceSession.create(await modelBlob.arrayBuffer());
 	const feeds = {
 		input: new ort.Tensor('int64', phonemeIds, [1, phonemeIds.length]),
