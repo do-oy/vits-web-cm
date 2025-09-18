@@ -27,7 +27,7 @@
   "bugs": {
     "url": "https://github.com/diffusionstudio/vits-web/issues"
   },
-  "homepage": "https://huggingface.co/spaces/diffusionstudio/vits-web",
+  "homepage": "https://github.com/do-oy/vits-web-cm",
   "license": "MIT",
   "keywords": [
     "vits",
