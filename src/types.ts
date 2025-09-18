@@ -1,4 +1,10 @@
-export type InferenceConfg = {
+export type InferenceResult = {
+	audio: Blob;
+	phonemes: string[];
+	ipa: string[];
+};
+
+export type InferenceConfig = {
 	text: string;
 	voiceId: string;
 };

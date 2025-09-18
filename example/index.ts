@@ -7,7 +7,7 @@ Object.assign(window, { tts });
 const worker = new Worker();
 
 // 🧪 here u can add custom models name
-const allModelIds = ['ru_RU-sidorovich', 'ru_RU-ruslan', 'ru_RU-oldray'];
+const allModelIds = ['ru_RU-ruslan-medium', 'ru_RU-denis-medium'];
 
 document.querySelector('#app')!.innerHTML = `
   <h2>🧪 TTS Demo</h2>
@@ -21,6 +21,8 @@ document.querySelector('#app')!.innerHTML = `
   <ul id="missing-list"></ul>
   <hr>
   <audio id="player" controls></audio>
+  <div><b>Транскрипция фонем (ID):</b> <span id="phonemes"></span></div>
+  <div><b>Транскрипция фонем (IPA):</b> <span id="ipa"></span></div>
 `;
 
 const textInput = document.getElementById('text') as HTMLTextAreaElement;
@@ -54,6 +56,16 @@ worker.addEventListener('message', (event: MessageEvent<{ type: string, audio?: 
     player.src = url;
     player.play();
     refreshCacheList();
+    // Показываем транскрипцию фонем (ID)
+    const phonemeDiv = document.getElementById('phonemes');
+    if (phonemeDiv && 'phonemes' in event.data && Array.isArray(event.data.phonemes)) {
+      phonemeDiv.textContent = event.data.phonemes.join(' ');
+    }
+    // Показываем транскрипцию фонем (IPA)
+    const ipaDiv = document.getElementById('ipa');
+    if (ipaDiv && 'ipa' in event.data && Array.isArray(event.data.ipa)) {
+      ipaDiv.textContent = event.data.ipa.join(' ');
+    }
   }
 });
 

@@ -1,4 +1,4 @@
-import { InferenceConfg, ProgressCallback } from './types';
+import { InferenceConfig, ProgressCallback, InferenceResult } from './types';
 import { ONNX_BASE, WASM_BASE } from './fixtures';
 import { readBlob, writeBlob } from './opfs';
 import { fetchBlob } from './http.js';
@@ -7,11 +7,11 @@ import { pcm2wav } from './audio';
 let module: typeof import('./piper.js');
 let ort: typeof import('onnxruntime-web');
 
-export async function predict(config: InferenceConfg, callback?: ProgressCallback): Promise<Blob> {
+export async function predict(config: InferenceConfig, callback?: ProgressCallback): Promise<InferenceResult> {
 	module = module ?? (await import('./piper.js'));
 	ort = ort ?? (await import('onnxruntime-web'));
 
-	const basePath = `/models/${config.voiceId}`;
+	const basePath = `/models/${config.voiceId}/${config.voiceId}`;
 	const input = JSON.stringify([{ text: config.text.trim() }]);
 
 	ort.env.allowLocalModels = true;
@@ -20,6 +20,8 @@ export async function predict(config: InferenceConfg, callback?: ProgressCallbac
 
 	const modelConfigBlob = await getBlob(`${basePath}.onnx.json`, callback);
 	const modelConfig = JSON.parse(await modelConfigBlob.text());
+	let rawPhonemes: string[] = [];
+	let ipaPhonemes: string[] = [];
 
 	const phonemeIds: string[] = await new Promise(async (resolve) => {
 		const phonemizer = await module.createPiperPhonemize({
@@ -69,7 +71,11 @@ export async function predict(config: InferenceConfg, callback?: ProgressCallbac
 		output: { data: pcm },
 	} = await session.run(feeds);
 
-	return new Blob([pcm2wav(pcm as Float32Array, 1, sampleRate)], { type: 'audio/x-wav' });
+	return {
+		audio: new Blob([pcm2wav(pcm as Float32Array, 1, sampleRate)], { type: 'audio/x-wav' }),
+		phonemes: rawPhonemes,
+		ipa: ipaPhonemes
+	};
 }
 
 async function getBlob(url: string, callback?: ProgressCallback): Promise<Blob> {

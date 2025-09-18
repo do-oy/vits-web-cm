@@ -1,0 +1,14 @@
+[
+  {
+    "id": "ru_RU-denis-medium",
+    "name": "ru_RU-denis-medium",
+    "language": "ru",
+    "sample_rate": 22050
+  },
+  {
+    "id": "ru_RU-ruslan-medium",
+    "name": "ru_RU-ruslan-medium",
+    "language": "ru",
+    "sample_rate": 22050
+  }
+]
