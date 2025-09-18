@@ -23,6 +23,14 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 	let rawPhonemes: string[] = [];
 	let ipaPhonemes: string[] = [];
 
+	// Build reverse phoneme_id_map: id (number) -> symbol
+	const idToPhoneme: Record<string, string> = {};
+	for (const [symbol, ids] of Object.entries(modelConfig.phoneme_id_map)) {
+		for (const id of ids as number[]) {
+			idToPhoneme[id] = symbol;
+		}
+	}
+
 	const phonemeIds: string[] = await new Promise(async (resolve) => {
 		const phonemizer = await module.createPiperPhonemize({
 			print: (data: any) => {
@@ -47,6 +55,9 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 			'/espeak-ng-data',
 		]);
 	});
+
+	// Map phonemeIds to IPA phonemes using reverse map
+	ipaPhonemes = phonemeIds.map(id => idToPhoneme[id] ?? '?');
 
 	const speakerId = 0;
 	const sampleRate = modelConfig.audio.sample_rate;
@@ -73,7 +84,7 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 
 	return {
 		audio: new Blob([pcm2wav(pcm as Float32Array, 1, sampleRate)], { type: 'audio/x-wav' }),
-		phonemes: rawPhonemes,
+		phonemes: phonemeIds,
 		ipa: ipaPhonemes
 	};
 }
