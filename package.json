@@ -1,7 +1,7 @@
 {
   "name": "@do_oy/vits-web-cm",
   "private": false,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Web api for using VITS based models in the browser! extend custom models",
   "type": "module",
   "files": [
