@@ -23,8 +23,6 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 	ort.env.wasm.numThreads = navigator.hardwareConcurrency;
 	ort.env.wasm.wasmPaths = ONNX_BASE;
 
-	let ipaPhonemeIds: number[] = [];
-
 	// Build reverse phoneme_id_map: id (number) -> symbol
 	const idToPhoneme: Record<string, string> = {};
 	for (const [symbol, ids] of Object.entries(modelConfig.phoneme_id_map)) {

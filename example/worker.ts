@@ -1,6 +1,6 @@
 import * as tts from '../src/index';
 
-async function main(event: MessageEvent<tts.InferenceConfg & { type: 'init' }>) {
+async function main(event: MessageEvent<tts.InferenceConfig & { type: 'init' }>) {
   if (event.data?.type != 'init') return;
 
   const start = performance.now();

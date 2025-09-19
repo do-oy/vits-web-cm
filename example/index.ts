@@ -7,7 +7,7 @@ Object.assign(window, { tts });
 const worker = new Worker();
 
 // 🧪 here u can add custom models name
-const allModelIds = ['ru_RU-ruslan-medium', 'ru_RU-denis-medium'];
+const allModelIds = ['ru_RU-ruslan-medium', 'ru_RU-denis-medium', 'boopy'];
 
 document.querySelector('#app')!.innerHTML = `
   <h2>🧪 TTS Demo</h2>
