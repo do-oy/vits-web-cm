@@ -11,7 +11,7 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 	module = module ?? (await import('./piper.js'));
 	ort = ort ?? (await import('onnxruntime-web'));
 
-	const basePath = `/models/${config.voiceId}/${config.voiceId}`;
+	const basePath = `/models/${config.voiceId}`;
 	const modelConfigBlob = await getBlob(`${basePath}.onnx.json`, callback);
 	const modelConfig = JSON.parse(await modelConfigBlob.text());
 	let ipaPhonemes: string[] = [];

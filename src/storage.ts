@@ -46,7 +46,7 @@ export async function stored(): Promise<string[]> {
 export async function flush() {
 	try {
 		const root = await navigator.storage.getDirectory();
-		const dir = await root.getDirectoryHandle('piper');
+		const dir = await root.getDirectoryHandle('tts^');
 		// @ts-ignore
 		await dir.remove({ recursive: true });
 	} catch (e) {

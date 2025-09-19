@@ -1,7 +1,7 @@
 export async function writeBlob(path: string, blob: Blob): Promise<void> {
 	try {
 		const root = await navigator.storage.getDirectory();
-		const dir = await root.getDirectoryHandle('piper', { create: true });
+		const dir = await root.getDirectoryHandle('tts^', { create: true });
 
 		const fileName = path.split('/').pop()!;
 		const file = await dir.getFileHandle(fileName, { create: true });
@@ -16,7 +16,7 @@ export async function writeBlob(path: string, blob: Blob): Promise<void> {
 export async function readBlob(path: string): Promise<Blob | undefined> {
 	try {
 		const root = await navigator.storage.getDirectory();
-		const dir = await root.getDirectoryHandle('piper', { create: true });
+		const dir = await root.getDirectoryHandle('tts^', { create: true });
 
 		const file = await dir.getFileHandle(path);
 		return await file.getFile();
@@ -28,7 +28,7 @@ export async function readBlob(path: string): Promise<Blob | undefined> {
 export async function removeBlob(path: string): Promise<void> {
 	try {
 		const root = await navigator.storage.getDirectory();
-		const dir = await root.getDirectoryHandle('piper');
+		const dir = await root.getDirectoryHandle('tts^');
 		await dir.removeEntry(path);
 	} catch (e) {
 		console.error('[OPFS] Remove error:', e);
@@ -37,7 +37,7 @@ export async function removeBlob(path: string): Promise<void> {
 
 export async function listBlobs(): Promise<string[]> {
 	const root = await navigator.storage.getDirectory();
-	const dir = await root.getDirectoryHandle('piper', { create: true });
+	const dir = await root.getDirectoryHandle('tts^', { create: true });
 
 	const files: string[] = [];
 
@@ -51,7 +51,7 @@ export async function listBlobs(): Promise<string[]> {
 
 export async function clearBlobs(): Promise<void> {
 	const root = await navigator.storage.getDirectory();
-	const dir = await root.getDirectoryHandle('piper', { create: true });
+	const dir = await root.getDirectoryHandle('tts^', { create: true });
 
 	// @ts-ignore
 	for await (const name of dir.keys()) {
