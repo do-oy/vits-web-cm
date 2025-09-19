@@ -23,3 +23,6 @@ dist-ssr
 *.sw?
 test-results
 playwright-report
+models/boopy/boopy.onnx
+models/boopy/boopy.onnx.json
+models/boopy/boopy.onnx.json.bak
