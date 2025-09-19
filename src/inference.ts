@@ -7,12 +7,34 @@ import { pcm2wav } from './audio';
 let module: typeof import('./piper.js');
 let ort: typeof import('onnxruntime-web');
 
+// Кэш моделей из models.json
+let modelsIndex: any[] | null = null;
+
+async function getModelsIndex(): Promise<any[]> {
+	if (!modelsIndex) {
+		const res = await fetch('/models/models.json');
+		modelsIndex = await res.json();
+	}
+	return modelsIndex!;
+}
+
+async function getModelFilePath(voiceId: string, ext: string): Promise<string> {
+	// ext: '.onnx' или '.onnx.json'
+	const models = await getModelsIndex();
+	const model = models.find((m: any) => m.id === voiceId);
+	if (!model) throw new Error(`Model ${voiceId} not found in models.json`);
+	return `/models/${voiceId}/${voiceId}${ext}`;
+}
+
 export async function predict(config: InferenceConfig, callback?: ProgressCallback): Promise<InferenceResult> {
 	module = module ?? (await import('./piper.js'));
 	ort = ort ?? (await import('onnxruntime-web'));
 
-	const basePath = `/models/${config.voiceId}`;
-	const modelConfigBlob = await getBlob(`${basePath}.onnx.json`, callback);
+	const voiceId = config.voiceId;
+	const modelConfigPath = await getModelFilePath(voiceId, '.onnx.json');
+	const modelPath = await getModelFilePath(voiceId, '.onnx');
+
+	const modelConfigBlob = await getBlobOPFS(modelConfigPath, callback);
 	const modelConfig = JSON.parse(await modelConfigBlob.text());
 	let ipaPhonemes: string[] = [];
 
@@ -64,7 +86,7 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 	const lengthScale = modelConfig.inference.length_scale;
 	const noiseW = modelConfig.inference.noise_w;
 
-	const modelBlob = await getBlob(`${basePath}.onnx`, callback);
+	const modelBlob = await getBlobOPFS(modelPath, callback);
 	const session = await ort.InferenceSession.create(await modelBlob.arrayBuffer());
 
 	const feeds = {
@@ -88,11 +110,13 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 	};
 }
 
-async function getBlob(url: string, callback?: ProgressCallback): Promise<Blob> {
-	let blob: Blob | undefined = await readBlob(url);
+// Загрузка blob: сначала из OPFS, если нет — скачиваем и сохраняем в OPFS
+async function getBlobOPFS(path: string, callback?: ProgressCallback): Promise<Blob> {
+	const opfsName = path.split('/').pop()!;
+	let blob: Blob | undefined = await readBlob(opfsName);
 	if (!blob) {
-		blob = await fetchBlob(url, callback);
-		await writeBlob(url, blob);
+		blob = await fetchBlob(path, callback);
+		await writeBlob(opfsName, blob);
 	}
 	return blob;
 }

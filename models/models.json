@@ -10,5 +10,11 @@
     "name": "ru_RU-ruslan-medium",
     "language": "ru",
     "sample_rate": 22050
+  },
+  {
+    "id": "boopy",
+    "name": "boopy",
+    "language": "ru",
+    "sample_rate": 22050
   }
 ]
