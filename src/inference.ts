@@ -12,16 +12,18 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 	ort = ort ?? (await import('onnxruntime-web'));
 
 	const basePath = `/models/${config.voiceId}/${config.voiceId}`;
-	const input = JSON.stringify([{ text: config.text.trim() }]);
+	const modelConfigBlob = await getBlob(`${basePath}.onnx.json`, callback);
+	const modelConfig = JSON.parse(await modelConfigBlob.text());
+	let ipaPhonemes: string[] = [];
+
+	let processedText = config.text;
+	const input = JSON.stringify([{ text: processedText.trim() }]);
 
 	ort.env.allowLocalModels = true;
 	ort.env.wasm.numThreads = navigator.hardwareConcurrency;
 	ort.env.wasm.wasmPaths = ONNX_BASE;
 
-	const modelConfigBlob = await getBlob(`${basePath}.onnx.json`, callback);
-	const modelConfig = JSON.parse(await modelConfigBlob.text());
-	let rawPhonemes: string[] = [];
-	let ipaPhonemes: string[] = [];
+	let ipaPhonemeIds: number[] = [];
 
 	// Build reverse phoneme_id_map: id (number) -> symbol
 	const idToPhoneme: Record<string, string> = {};
@@ -56,8 +58,7 @@ export async function predict(config: InferenceConfig, callback?: ProgressCallba
 		]);
 	});
 
-	// Map phonemeIds to IPA phonemes using reverse map
-	ipaPhonemes = phonemeIds.map(id => idToPhoneme[id] ?? '?');
+	ipaPhonemes = phonemeIds.map(id => idToPhoneme[id] || id);
 
 	const speakerId = 0;
 	const sampleRate = modelConfig.audio.sample_rate;
